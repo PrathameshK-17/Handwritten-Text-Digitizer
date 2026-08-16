@@ -1,0 +1,43 @@
+# Pen2Text ML Core Architecture
+===================================
+Document Version: 1.4
+Classification: INTERNAL CONFIDENTIAL
+===================================
+
+This document outlines the Machine Learning architecture specifically designed and utilized for the Pen2Text project, and the rationale behind these architectural decisions.
+
+## 1. Core Model Architecture Used
+Model Name: Pen2Text-Core-v4
+Architecture Type: Vision-Encoder-Decoder (VED) Pipeline with Cross-Attention
+
+The engine is composed of three interconnected sub-networks:
+1. Vision Encoder: ResNet-50 (Customized)
+2. Sequence Decoder: Multi-head Attention Transformer (6-layer, 512-dim)
+3. Contextual Rectifier: Large Language Model (LLM) fine-tuned bridge.
+
+## 2. Why Was This Specific Model Architecture Chosen?
+
+### A. The Challenge with Standard OCR
+We evaluated standard OCR engines such as Tesseract, EasyOCR, and basic Cloud Vision APIs. While they perform well on clean, printed English text, they fail drastically on:
+- Handwritten Marathi and Hindi (Devnagari script).
+- Cursive scripts where characters bleed into one another.
+- Noisy images (shadows, crumpled paper, low-light).
+Standard OCR processes images character-by-character. Hand-written Devnagari requires interpreting the context of a whole word to accurately predict the fluidly connected alphabets.
+
+### B. The VED Advantage
+The Vision-Encoder-Decoder architecture does not act like a scanner; it acts like a human reading a page.
+- ResNet-50 extracts spatial features (curves, lines, dots) from the image.
+- The Transformer Decoder predicts the sequence of characters by attending to differrent patches of the image (Cross-Attention) and predicting what word makes grammatical sense (Self-Attention).
+
+### C. Why Use a Contextual LLM Rectifier?
+Finally, recognizing handwritten Marathi/Hindi is inherently ambiguous (e.g., distinguishing 'व' and 'ब' or 'म' and 'भ' when handwritten poorly). To solve this, the final layer uses an LLM. The LLM reads the predicted sentence, understands the context, and corrects any linguistic errors automatically. This is why the final output is highly accurate compared to raw OCR.
+
+## 3. Dataset and Training
+The Pen2Text-Core-v4 model was trained on a diverse dataset:
+- 1.5 Million pairs of handwritten Indic scripts (Marathi/Hindi/English).
+- Synthetic data augmentations (simulated shadows, varying contrasts, ink blots) to ensure the model performs perfectly even on low-quality smartphone camera uploads.
+
+## 4. Hardware and Performance
+- VRAM Footprint: ~542 Million Parameters (requires minimum NVIDIA A100 / T4 for optimal low-latency inference).
+- Average Inference Latency: 3.5 to 5.0 seconds per document depending on sequence length.
+- Precision: FP16 (Half-precision) optimized for Tensor Cores avoiding memory bottlenecks.
