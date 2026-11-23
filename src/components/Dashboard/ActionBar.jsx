@@ -1,5 +1,5 @@
 const ACTIONS = [
-  { key: 'copy', label: 'Copy Text' },
+  { key: 'copy', label: 'Copy All Text' },
   { key: 'pdf', label: 'Download PDF' },
   { key: 'docx', label: 'Download Word' },
   { key: 'txt', label: 'Download TXT' },
@@ -7,6 +7,7 @@ const ACTIONS = [
 
 export default function ActionBar({
   disabled = false,
+  hasText = false,
   onCopy,
   onDownload,
   onListen,
@@ -16,6 +17,7 @@ export default function ActionBar({
     <div className="mt-5 flex flex-wrap items-center gap-2.5 sm:gap-3">
       {ACTIONS.map((action) => {
         const isPrimary = action.key === 'copy';
+        const isDisabled = disabled || (action.key === 'copy' && !hasText);
 
         return (
           <button
@@ -28,7 +30,7 @@ export default function ActionBar({
               }
               onDownload(action.key);
             }}
-            disabled={disabled}
+            disabled={isDisabled}
             className={[
               'inline-flex items-center rounded-xl px-4 py-2.5 text-sm font-medium transition duration-200',
               'disabled:cursor-not-allowed disabled:opacity-55',
