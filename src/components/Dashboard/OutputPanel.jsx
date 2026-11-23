@@ -93,6 +93,7 @@ export default function OutputPanel({
 
       <ActionBar
         disabled={loading || !result || !hasFile}
+        hasText={Boolean(activeContent.trim())}
         onCopy={onCopy}
         onDownload={onDownload}
         onListen={onListen}
